@@ -1,0 +1,6 @@
+#/Users/moustholmes/corrupt_mnist/src/corrupt_mnist/data/corrupt_mnist_datamodule.py
+
+_target_: data.corrupt_mnist_datamodule.CorruptMNISTDataModule 
+raw_dir: data/raw
+processed_dir: data/processed
+batch_size: 32

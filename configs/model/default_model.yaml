@@ -1,0 +1,14 @@
+# /Users/moustholmes/corrupt_mnist/src/corrupt_mnist/models/corrupt_mnist_module.py
+_target_: models.corrupt_mnist_module.CorruptMNISTModel
+model:
+  _target_: torch.nn.Sequential
+  _args_:
+    - _target_: torch.nn.Flatten
+    - _target_: torch.nn.Linear
+      in_features: 784
+      out_features: 128
+    - _target_: torch.nn.ReLU
+    - _target_: torch.nn.Linear
+      in_features: 128
+      out_features: 10
+lr: 0.001

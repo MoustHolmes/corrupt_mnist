@@ -1,0 +1,9 @@
+defaults:
+  - model: default_model
+  - data_module: default_data_module
+  - logger: wandb_logger
+  - _self_
+
+project_name: corrupt_mnist
+checkpoint_dir: ./checkpoints
+epochs: 10
