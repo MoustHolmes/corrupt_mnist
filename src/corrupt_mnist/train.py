@@ -29,7 +29,15 @@ def train(cfg: DictConfig):
     # Initialize DataModule and Model
     data_module = instantiate(cfg.data_module)
     model = instantiate(cfg.model)
-    logger = instantiate(cfg.logger)
+    wandb_logger = instantiate(cfg.logger)
+
+
+    wandb_logger.watch(model, log_freq=500)
+
+    callbacks = instantiate(cfg.callbacks)
+
+    trainer = instantiate(cfg.trainer, callbacks=callbacks, logger=wandb_logger)
+
 
     # Add a ModelCheckpoint callback to save the best model
     checkpoint_callback = ModelCheckpoint(
@@ -41,17 +49,36 @@ def train(cfg: DictConfig):
     )
 
     # Train the model
-    trainer = pl.Trainer(
-        max_epochs=cfg.epochs,
-        logger=logger,
-        callbacks=[checkpoint_callback],
-        accelerator="gpu" if torch.cuda.is_available() else "cpu",
-    )
+    # trainer = pl.Trainer(
+    #     max_epochs=cfg.epochs,
+    #     logger=wandb_logger,
+    #     callbacks=[checkpoint_callback],
+    #     accelerator="gpu" if torch.cuda.is_available() else "cpu",
+    # )
     trainer.fit(model, data_module)
 
     # Finalize the W&B run
 
-    logger.experiment.finish()
+     # Log the best model as a W&B artifact
+    best_model_path = checkpoint_callback.best_model_path
+    if best_model_path:
+        artifact = wandb.Artifact(
+            name="corrupt_mnist_model",
+            type="model",
+            description="Trained Corrupt MNIST model",
+            metadata={
+                "epochs": cfg.epochs,
+                "batch_size": cfg.data_module.batch_size,
+                "lr": cfg.model.lr,
+            },
+        )
+        artifact.add_file(best_model_path)
+        wandb_logger.experiment.log_artifact(artifact)
+        print(f"Logged model artifact: {best_model_path}")
+    else:
+        print("No model was saved during training.")
+
+    wandb_logger.experiment.finish()
 
 if __name__ == "__main__":
     train()
